@@ -120,6 +120,20 @@ Elden Ring - Playtime: 142.5 hrs | Achievements: 28/42 | Last Played: Apr 5, 202
 - `/game Elden Ring` → Looks up "Elden Ring" stats
 - `/game` (no argument) → Gets current game from Twitch stream, then looks up stats
 
+### Edge Case Messages
+
+The command provides helpful feedback for various scenarios:
+
+| Scenario | Example Message |
+|----------|-----------------|
+| No argument + channel offline | `Channel is offline or no category is set. Please specify a game name.` |
+| No argument + non-game category | `Currently in "Just Chatting" - not a game. Please specify a game name.` |
+| Explicit non-game argument | `"Music" is not a game category.` |
+| Game not in Steam library | `Game "Elden Ring" not found in Steam library.` |
+| Profile is private | `No games found in Steam library (profile may be private).` |
+
+Non-game categories include: Just Chatting, Music, Art, Talk Shows & Podcasts, ASMR, Food & Drink, and others.
+
 ### Troubleshooting Mix It Up
 
 If the command doesn't work:
