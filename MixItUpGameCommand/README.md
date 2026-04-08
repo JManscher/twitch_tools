@@ -8,6 +8,7 @@ A CLI tool that fetches Steam game statistics for use with Mix It Up's `/game` T
 - 🔴 Auto-detect current game from Twitch stream when no game is specified
 - 🔍 Fuzzy game name matching (handles typos and partial names)
 - ⚡ Supports both Steam vanity URLs and direct Steam64 IDs
+- 💾 File-based caching to minimize API calls and reduce response latency
 - 🤖 Easy integration with Mix It Up for Twitch chat commands
 
 ## Output Examples
@@ -70,6 +71,11 @@ pip install -r requirements.txt
    TWITCH_CLIENT_ID=your_actual_client_id
    TWITCH_CLIENT_SECRET=your_actual_client_secret
    TWITCH_CHANNEL=your_channel_name
+   ```
+
+   Optional settings:
+   ```
+   DEBUG_TIMING=true   # Print per-step API timing to stderr (for performance debugging)
    ```
 
 3. Configure your Steam profile identifier (choose one):
@@ -152,6 +158,19 @@ If the command doesn't work:
 
 4. **Check Mix It Up logs** for any error messages
 
+## Caching
+
+API responses are cached to `.cache.json` in the tool's directory to reduce latency and avoid redundant calls. TTLs per data type:
+
+| Data | TTL |
+|------|-----|
+| Steam vanity URL → Steam ID | 7 days |
+| Owned games list | 1 hour |
+| Achievement progress | 15 minutes |
+| Twitch OAuth token | 50 days |
+
+The cache file is created automatically and excluded from git. Delete it to force a full refresh.
+
 ## Files
 
 | File | Description |
@@ -159,9 +178,11 @@ If the command doesn't work:
 | `game_command.py` | Main CLI entry point |
 | `steam_api.py` | Steam Web API integration |
 | `twitch_api.py` | Twitch API integration |
-| `config.py` | Configuration management |
+| `config.py` | Configuration management and `DEBUG_TIMING` support |
+| `cache.py` | File-based JSON cache with per-key TTL |
 | `game.bat` | Windows batch wrapper for Mix It Up |
 | `.env` | Your API keys (create from `.env.example`) |
+| `.cache.json` | Auto-generated cache file (not committed to git) |
 
 ## Privacy Note
 
