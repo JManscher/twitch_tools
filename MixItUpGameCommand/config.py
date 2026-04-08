@@ -1,6 +1,9 @@
 """Configuration management for the game command."""
 
 import os
+import sys
+import time
+from contextlib import contextmanager
 from dotenv import load_dotenv
 
 # Load environment variables from .env file
@@ -15,6 +18,21 @@ STEAM_ID_URL = os.getenv("STEAM_ID_URL")  # Direct Steam64 ID as alternative to 
 TWITCH_CLIENT_ID = os.getenv("TWITCH_CLIENT_ID")
 TWITCH_CLIENT_SECRET = os.getenv("TWITCH_CLIENT_SECRET")
 TWITCH_CHANNEL = os.getenv("TWITCH_CHANNEL")
+
+# Debug timing flag
+DEBUG_TIMING = os.getenv("DEBUG_TIMING", "").lower() in ("1", "true", "yes")
+
+
+@contextmanager
+def timer(label: str):
+    """Context manager that prints elapsed time to stderr when DEBUG_TIMING is enabled."""
+    if not DEBUG_TIMING:
+        yield
+        return
+    start = time.perf_counter()
+    yield
+    elapsed = (time.perf_counter() - start) * 1000
+    print(f"[timing] {label}: {elapsed:.1f}ms", file=sys.stderr)
 
 
 def validate_config():

@@ -5,7 +5,12 @@ from datetime import datetime
 from typing import Optional, Tuple
 from difflib import SequenceMatcher
 
+import cache
 import config
+
+_VANITY_TTL = 7 * 24 * 3600   # 7 days
+_GAMES_TTL = 3600              # 1 hour
+_ACHIEVEMENTS_TTL = 900        # 15 minutes
 
 
 class SteamAPIError(Exception):
@@ -25,19 +30,27 @@ def resolve_vanity_url(vanity_url: str) -> str:
     Raises:
         SteamAPIError: If the vanity URL cannot be resolved
     """
+    cache_key = f"steam_id:{vanity_url}"
+    cached = cache.get(cache_key, _VANITY_TTL)
+    if cached:
+        return cached
+
     url = "https://api.steampowered.com/ISteamUser/ResolveVanityURL/v1/"
     params = {
         "key": config.STEAM_API_KEY,
         "vanityurl": vanity_url
     }
-    
+
     try:
-        response = requests.get(url, params=params, timeout=10)
+        with config.timer("Steam: resolve vanity URL"):
+            response = requests.get(url, params=params, timeout=10)
         response.raise_for_status()
         data = response.json()
-        
+
         if data.get("response", {}).get("success") == 1:
-            return data["response"]["steamid"]
+            steam_id = data["response"]["steamid"]
+            cache.set(cache_key, steam_id)
+            return steam_id
         else:
             raise SteamAPIError(f"Could not resolve Steam profile: {vanity_url}")
     except requests.RequestException as e:
@@ -46,13 +59,18 @@ def resolve_vanity_url(vanity_url: str) -> str:
 
 def get_owned_games(steam_id: str) -> list:
     """Get list of owned games with playtime information.
-    
+
     Args:
         steam_id: The Steam64 ID
-        
+
     Returns:
         List of game dictionaries with appid, name, playtime_forever, rtime_last_played
     """
+    cache_key = f"owned_games:{steam_id}"
+    cached = cache.get(cache_key, _GAMES_TTL)
+    if cached is not None:
+        return cached
+
     url = "https://api.steampowered.com/IPlayerService/GetOwnedGames/v1/"
     params = {
         "key": config.STEAM_API_KEY,
@@ -60,57 +78,71 @@ def get_owned_games(steam_id: str) -> list:
         "include_appinfo": True,
         "include_played_free_games": True
     }
-    
+
     try:
-        response = requests.get(url, params=params, timeout=10)
+        with config.timer("Steam: get owned games"):
+            response = requests.get(url, params=params, timeout=10)
         response.raise_for_status()
         data = response.json()
-        
-        return data.get("response", {}).get("games", [])
+
+        games = data.get("response", {}).get("games", [])
+        cache.set(cache_key, games)
+        return games
     except requests.RequestException as e:
         raise SteamAPIError(f"Failed to fetch owned games: {e}")
 
 
 def get_achievements(steam_id: str, app_id: int) -> Tuple[int, int]:
     """Get achievement progress for a specific game.
-    
+
     Args:
         steam_id: The Steam64 ID
         app_id: The Steam application ID
-        
+
     Returns:
         Tuple of (unlocked_count, total_count)
         Returns (0, 0) if the game has no achievements or stats are private
     """
+    cache_key = f"achievements:{steam_id}:{app_id}"
+    cached = cache.get(cache_key, _ACHIEVEMENTS_TTL)
+    if cached is not None:
+        return tuple(cached)
+
     url = "https://api.steampowered.com/ISteamUserStats/GetPlayerAchievements/v1/"
     params = {
         "key": config.STEAM_API_KEY,
         "steamid": steam_id,
         "appid": app_id
     }
-    
+
     try:
-        response = requests.get(url, params=params, timeout=10)
-        
+        with config.timer("Steam: get achievements"):
+            response = requests.get(url, params=params, timeout=10)
+
         # 400 errors often mean no achievements for this game
         if response.status_code == 400:
+            cache.set(cache_key, [0, 0])
             return (0, 0)
-            
+
         response.raise_for_status()
         data = response.json()
-        
+
         if not data.get("playerstats", {}).get("success"):
+            cache.set(cache_key, [0, 0])
             return (0, 0)
-        
+
         achievements = data.get("playerstats", {}).get("achievements", [])
         if not achievements:
+            cache.set(cache_key, [0, 0])
             return (0, 0)
-            
+
         total = len(achievements)
         unlocked = sum(1 for a in achievements if a.get("achieved") == 1)
-        
+        result = [unlocked, total]
+        cache.set(cache_key, result)
         return (unlocked, total)
     except requests.RequestException:
+        cache.set(cache_key, [0, 0])
         return (0, 0)
 
 

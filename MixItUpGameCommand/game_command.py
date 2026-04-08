@@ -10,6 +10,9 @@ If omitted, fetches current game from Twitch stream.
 """
 
 import sys
+import time
+
+_start_time = time.perf_counter()
 
 # Categories on Twitch that are not actual games (case-insensitive check)
 NON_GAME_CATEGORIES = {
@@ -46,6 +49,9 @@ def main():
     try:
         # Validate configuration
         config.validate_config()
+        if config.DEBUG_TIMING:
+            elapsed = (time.perf_counter() - _start_time) * 1000
+            print(f"[timing] Python startup + imports: {elapsed:.1f}ms", file=sys.stderr)
     except ValueError as e:
         print(f"Configuration error: {e}")
         sys.exit(1)
@@ -93,6 +99,10 @@ def main():
     except Exception as e:
         print(f"Error: {e}")
         sys.exit(1)
+
+    if config.DEBUG_TIMING:
+        total = (time.perf_counter() - _start_time) * 1000
+        print(f"[timing] Total: {total:.1f}ms", file=sys.stderr)
 
 
 if __name__ == "__main__":
