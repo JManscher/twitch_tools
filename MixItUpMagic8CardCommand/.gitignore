@@ -1,0 +1,6 @@
+.env
+card-*.jpg
+latest_card_path.txt
+latest_card.jpg
+latest_card.png
+__pycache__/
