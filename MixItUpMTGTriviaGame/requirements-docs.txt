@@ -1,0 +1,3 @@
+# Build-time only — needed to regenerate README.html from README.md.
+# Not required to run the trivia server.
+markdown>=3.4

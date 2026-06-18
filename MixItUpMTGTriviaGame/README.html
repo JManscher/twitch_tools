@@ -1,0 +1,663 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Mix It Up MTG Trivia Game</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Quicksand:wght@500;600;700&family=Fredoka:wght@600;700&display=swap" rel="stylesheet">
+  <style>
+:root {
+  --cream: #FBF1DA;
+  --cream-deep: #F5E6C4;
+  --paper: #FFFCF3;
+  --sage: #7DA85E;
+  --sage-deep: #5F8848;
+  --sage-soft: #C7DEB4;
+  --coral: #E76F8B;
+  --coral-soft: #FFC2CC;
+  --ink: #4A3A2F;
+  --ink-soft: #7A6856;
+  --code-bg: #2E2A33;
+  --code-ink: #F3ECD8;
+}
+* { box-sizing: border-box; }
+html { scroll-behavior: smooth; }
+body {
+  margin: 0;
+  padding: 48px 20px 96px;
+  background-color: var(--cream);
+  background-image:
+    radial-gradient(circle at 12% 6%, rgba(255, 194, 204, 0.30), transparent 30%),
+    radial-gradient(circle at 88% 96%, rgba(199, 222, 180, 0.40), transparent 34%);
+  background-attachment: fixed;
+  font-family: "Quicksand", "Segoe UI", system-ui, sans-serif;
+  color: var(--ink);
+  line-height: 1.65;
+  font-size: 17px;
+}
+.page {
+  max-width: 880px;
+  margin: 0 auto;
+  background: var(--paper);
+  border: 3px solid var(--sage-soft);
+  border-radius: 26px;
+  box-shadow: 0 12px 48px rgba(180, 140, 90, 0.20);
+  padding: 48px 56px 56px;
+}
+h1, h2, h3, h4 {
+  font-family: "Fredoka", "Quicksand", sans-serif;
+  color: var(--sage-deep);
+  line-height: 1.2;
+  margin-top: 1.8em;
+  margin-bottom: 0.5em;
+}
+h1 {
+  font-size: 2.1rem;
+  margin-top: 0;
+  color: var(--ink);
+  border-bottom: 3px solid var(--coral-soft);
+  padding-bottom: 0.3em;
+}
+h2 {
+  font-size: 1.5rem;
+  border-bottom: 2px dashed var(--sage-soft);
+  padding-bottom: 0.25em;
+}
+h3 { font-size: 1.2rem; color: var(--coral); }
+h4 { font-size: 1.05rem; }
+p { margin: 0.7em 0; }
+a { color: var(--coral); text-decoration: none; font-weight: 600; }
+a:hover { text-decoration: underline; }
+strong { color: var(--ink); }
+ul, ol { padding-left: 1.5em; }
+li { margin: 0.3em 0; }
+hr { border: none; border-top: 2px dashed var(--sage-soft); margin: 2em 0; }
+blockquote {
+  margin: 1.2em 0;
+  padding: 0.6em 1.1em;
+  background: rgba(199, 222, 180, 0.30);
+  border-left: 5px solid var(--sage);
+  border-radius: 10px;
+  color: var(--ink);
+}
+blockquote p { margin: 0.4em 0; }
+code {
+  font-family: "Cascadia Code", "Consolas", "SFMono-Regular", monospace;
+  font-size: 0.9em;
+  background: var(--cream-deep);
+  color: #9C4A5E;
+  padding: 0.12em 0.4em;
+  border-radius: 6px;
+  overflow-wrap: anywhere;
+}
+pre {
+  background: var(--code-bg);
+  color: var(--code-ink);
+  padding: 16px 20px;
+  border-radius: 14px;
+  overflow-x: auto;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.18);
+  line-height: 1.5;
+}
+pre code {
+  background: none;
+  color: inherit;
+  padding: 0;
+  font-size: 0.88em;
+}
+table {
+  border-collapse: collapse;
+  width: 100%;
+  margin: 1.2em 0;
+  font-size: 0.95em;
+  background: var(--paper);
+  border-radius: 12px;
+  overflow: hidden;
+  box-shadow: 0 3px 14px rgba(180, 140, 90, 0.14);
+}
+th, td {
+  text-align: left;
+  padding: 10px 14px;
+  border-bottom: 1px solid var(--sage-soft);
+  vertical-align: top;
+  overflow-wrap: anywhere;
+}
+th {
+  background: var(--sage);
+  color: #fff;
+  font-family: "Fredoka", "Quicksand", sans-serif;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+}
+tr:nth-child(even) td { background: rgba(199, 222, 180, 0.16); }
+tr:last-child td { border-bottom: none; }
+.doc-footer {
+  margin-top: 3em;
+  padding-top: 1.2em;
+  border-top: 2px dashed var(--sage-soft);
+  font-size: 0.85em;
+  color: var(--ink-soft);
+  text-align: center;
+}
+</style>
+</head>
+<body>
+  <main class="page">
+<h1 id="mix-it-up-mtg-trivia-game">Mix It Up MTG Trivia Game</h1>
+<p>A continuously-running Magic: The Gathering trivia game designed for a Twitch BRB (Be Right Back) scene. While you're away, viewers see a question + four multiple-choice answers on screen, vote in chat with <code>!vote A</code> (or B, C, D), and after a timer the correct answer is revealed with the vote tally. Then the next question loads. The loop runs until you stop it.</p>
+<ul>
+<li>Questions you write yourself in a single JSON file.</li>
+<li>Optional Scryfall card images on the question prompt and on any of the four answers (look up by card name).</li>
+<li>Difficulty badges: Easy / Medium / Difficult.</li>
+<li>Vote tallies update live; the correct answer is revealed when the timer hits zero.</li>
+<li>Drop in your own background graphic — it's just <code>static/background.png</code>.</li>
+</ul>
+<h2 id="how-it-works">How it works</h2>
+<p>This tool runs a small local web server (Flask) at <code>http://localhost:8765</code>. You point an <strong>OBS Browser Source</strong> at it; that browser source becomes your BRB screen. Mix It Up forwards chat votes to the server via its built-in Web Request action. Everything stays on your machine.</p>
+<h2 id="features">Features</h2>
+<ul>
+<li>Continuous question loop while you're BRB — no manual triggering between questions</li>
+<li>Live vote tallying per round (one vote per viewer; first vote locks in — no changing answers)</li>
+<li>Two leaderboards — a per-session board (resets each run) and a persistent all-time board (survives restarts). The overlay shows one at a time and rotates between them. Correct answers earn points weighted by difficulty</li>
+<li>Smooth countdown timer rendered locally for no jitter</li>
+<li>Bot username denylist (<code>nightbot</code>, <code>streamelements</code>, <code>streamlabs</code>, <code>moobot</code> by default)</li>
+<li>Scryfall card images prefetched at startup and cached for 30 days</li>
+<li>Question images for prompts like "which card is this?", with selective censoring (hide name, mana cost, art, etc.)</li>
+<li>Graceful degradation when Scryfall is unreachable (text-only fallback)</li>
+<li>Optional mod-only skip + scoreboard-reset endpoints</li>
+<li>Optional <code>DEBUG_TIMING</code> flag prints per-step timing to stderr</li>
+</ul>
+<h2 id="setup-instructions">Setup Instructions</h2>
+<h3 id="1-install-python">1. Install Python</h3>
+<p>Download and install Python 3.8+ from <a href="https://www.python.org/downloads/">python.org</a> and check <strong>Add Python to PATH</strong> during install.</p>
+<blockquote>
+<p><strong>Watch out for the Microsoft Store stub.</strong> On a fresh Windows machine without real Python installed, typing <code>python</code> opens the Microsoft Store instead of running anything. If you see <code>Python was not found; run without arguments to install from the Microsoft Store...</code>, finish the python.org install above, then go to <strong>Settings -&gt; Apps -&gt; Advanced app settings -&gt; App execution aliases</strong> and turn off both <code>python.exe</code> and <code>python3.exe</code> entries. <code>trivia.bat</code> prefers the <code>py</code> launcher (bundled with the python.org installer) so it sidesteps this stub once Python is actually installed.</p>
+</blockquote>
+<h3 id="2-install-dependencies">2. Install Dependencies</h3>
+<p>Open a command prompt in this folder and run:</p>
+<pre><code class="language-cmd">pip install -r requirements.txt
+</code></pre>
+<h3 id="3-configure-optional">3. Configure (optional)</h3>
+<p>Copy <code>.env.example</code> to <code>.env</code> only if you want to override defaults:</p>
+<pre><code class="language-cmd">copy .env.example .env
+</code></pre>
+<table>
+<thead>
+<tr>
+<th>Variable</th>
+<th>Default</th>
+<th>Purpose</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>PORT</code></td>
+<td><code>8765</code></td>
+<td>Port the server listens on. Change if 8765 is in use.</td>
+</tr>
+<tr>
+<td><code>ASK_SECONDS</code></td>
+<td><code>30</code></td>
+<td>Seconds viewers have to vote on each question.</td>
+</tr>
+<tr>
+<td><code>REVEAL_SECONDS</code></td>
+<td><code>8</code></td>
+<td>Seconds the correct answer is shown before the next question.</td>
+</tr>
+<tr>
+<td><code>QUESTIONS_FILE</code></td>
+<td><code>./questions.json</code></td>
+<td>Path to the trivia questions file.</td>
+</tr>
+<tr>
+<td><code>BOT_USERNAMES</code></td>
+<td><code>nightbot,streamelements,streamlabs,moobot</code></td>
+<td>Comma-separated usernames whose votes are ignored.</td>
+</tr>
+<tr>
+<td><code>SKIP_SECRET</code></td>
+<td>(empty)</td>
+<td>If set, the <code>/skip</code> and <code>/reset</code> endpoints require this value in an <code>X-Skip-Secret</code> header.</td>
+</tr>
+<tr>
+<td><code>SHOW_SCOREBOARD</code></td>
+<td><code>true</code></td>
+<td>Set to <code>false</code> to hide the on-screen leaderboard.</td>
+</tr>
+<tr>
+<td><code>SCOREBOARD_SIZE</code></td>
+<td><code>5</code></td>
+<td>How many top players to list in each leaderboard section.</td>
+</tr>
+<tr>
+<td><code>SCOREBOARD_ROTATE_SECONDS</code></td>
+<td><code>6</code></td>
+<td>How often the leaderboard rotates between This Session and All-Time.</td>
+</tr>
+<tr>
+<td><code>SCORES_FILE</code></td>
+<td><code>./scores.json</code></td>
+<td>Where the all-time leaderboard is stored. Delete this file to wipe all-time standings.</td>
+</tr>
+<tr>
+<td><code>POINTS_EASY</code></td>
+<td><code>1</code></td>
+<td>Points awarded for a correct answer on an Easy question.</td>
+</tr>
+<tr>
+<td><code>POINTS_MEDIUM</code></td>
+<td><code>2</code></td>
+<td>Points awarded for a correct answer on a Medium question.</td>
+</tr>
+<tr>
+<td><code>POINTS_DIFFICULT</code></td>
+<td><code>3</code></td>
+<td>Points awarded for a correct answer on a Difficult question.</td>
+</tr>
+<tr>
+<td><code>DEBUG_TIMING</code></td>
+<td><code>false</code></td>
+<td>Set to <code>true</code> to print per-step timing to stderr.</td>
+</tr>
+</tbody>
+</table>
+<h3 id="4-write-your-trivia-questions">4. Write your trivia questions</h3>
+<p>Edit <code>questions.json</code>. A sample file is included covering Easy, Medium, and Difficult questions, including a couple with card images on the question prompt.</p>
+<p>The schema:</p>
+<pre><code class="language-json">{
+  &quot;version&quot;: 1,
+  &quot;questions&quot;: [
+    {
+      &quot;id&quot;: &quot;q-001&quot;,
+      &quot;difficulty&quot;: &quot;Easy&quot;,
+      &quot;question&quot;: &quot;Which color is most associated with creature destruction?&quot;,
+      &quot;question_image&quot;: null,
+      &quot;options&quot;: [
+        { &quot;text&quot;: &quot;White&quot;, &quot;card&quot;: null },
+        { &quot;text&quot;: &quot;Black&quot;, &quot;card&quot;: null },
+        { &quot;text&quot;: &quot;Blue&quot;,  &quot;card&quot;: null },
+        { &quot;text&quot;: &quot;Green&quot;, &quot;card&quot;: null }
+      ],
+      &quot;correct&quot;: 1,
+      &quot;explanation&quot;: &quot;Black has the largest share of unconditional removal.&quot;
+    },
+    {
+      &quot;id&quot;: &quot;q-002&quot;,
+      &quot;difficulty&quot;: &quot;Medium&quot;,
+      &quot;question&quot;: &quot;What is this card's mana cost?&quot;,
+      &quot;question_image&quot;: {
+        &quot;card&quot;: &quot;Lightning Bolt&quot;,
+        &quot;alt_text&quot;: &quot;A red instant&quot;,
+        &quot;hide&quot;: [&quot;name&quot;, &quot;mana_cost&quot;]
+      },
+      &quot;options&quot;: [
+        { &quot;text&quot;: &quot;R&quot;,  &quot;card&quot;: null },
+        { &quot;text&quot;: &quot;1R&quot;, &quot;card&quot;: null },
+        { &quot;text&quot;: &quot;2R&quot;, &quot;card&quot;: null },
+        { &quot;text&quot;: &quot;RR&quot;, &quot;card&quot;: null }
+      ],
+      &quot;correct&quot;: 0,
+      &quot;explanation&quot;: &quot;Lightning Bolt costs R — one red mana, three damage to any target.&quot;
+    }
+  ]
+}
+</code></pre>
+<p>Rules:</p>
+<ul>
+<li><code>version</code> must be <code>1</code>.</li>
+<li><code>id</code> is optional; if omitted, it's auto-generated as <code>q-NNN</code>.</li>
+<li><code>difficulty</code> controls the badge color: <code>Easy</code> -&gt; green, <code>Medium</code> -&gt; yellow, <code>Difficult</code> -&gt; red. Other strings render as a gray badge.</li>
+<li><code>question</code> is required.</li>
+<li><code>question_image</code> is <code>null</code>, or <code>{ "card": "&lt;Scryfall name&gt;", "set": "&lt;optional set code&gt;", "alt_text": "&lt;optional&gt;", "hide": ["..."] }</code>. The card image appears next to the question. Use <code>hide</code> to censor parts of the card so viewers have to guess what's underneath (see below). Use <code>set</code> to pin the printing (see "Pinning a specific printing" below).</li>
+<li><code>options</code> must contain exactly 4 entries. Each has <code>text</code> (required), <code>card</code> (Scryfall card name, or <code>null</code> for text-only), and optional <code>set</code> and <code>hide</code>.</li>
+<li><code>correct</code> is the 0-based index (0, 1, 2, or 3) of the right answer.</li>
+<li><code>explanation</code> is optional text shown below the correct answer during the reveal.</li>
+</ul>
+<h4 id="hiding-parts-of-a-card">Hiding parts of a card</h4>
+<p>The <code>hide</code> field accepts a list of named regions. Two flavors:</p>
+<p><strong>Card-image regions</strong> — sage-green block over that part of the card image.</p>
+<table>
+<thead>
+<tr>
+<th>Region</th>
+<th>Covers</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>name</code></td>
+<td>Title bar at the top</td>
+</tr>
+<tr>
+<td><code>mana_cost</code></td>
+<td>Mana cost in the top-right corner</td>
+</tr>
+<tr>
+<td><code>art</code></td>
+<td>The artwork</td>
+</tr>
+<tr>
+<td><code>type</code></td>
+<td>Type line between art and rules text</td>
+</tr>
+<tr>
+<td><code>text</code></td>
+<td>Rules / flavor text box</td>
+</tr>
+<tr>
+<td><code>pt</code></td>
+<td>Power/Toughness in the bottom-right (creatures only)</td>
+</tr>
+<tr>
+<td><code>artist</code></td>
+<td>Artist credit at the bottom</td>
+</tr>
+<tr>
+<td><code>set</code></td>
+<td>Set / expansion symbol on the type line</td>
+</tr>
+<tr>
+<td><code>collector</code></td>
+<td>Bottom-left collector line (set/number/rarity letter)</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Info chips</strong> — render a small chip above the card. During ASK the chip shows <code>?</code>; during REVEAL the real value is shown.</p>
+<table>
+<thead>
+<tr>
+<th>Region</th>
+<th>Shows on reveal</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>rarity</code></td>
+<td>Common / Uncommon / Rare / Mythic Rare (from Scryfall)</td>
+</tr>
+<tr>
+<td><code>price</code></td>
+<td>Scryfall USD market price (e.g. <code>$0.25</code>)</td>
+</tr>
+</tbody>
+</table>
+<blockquote>
+<p><strong>Asking about rarity?</strong> A modern card prints its rarity in two places — the set-symbol colour and the bottom-left collector line (the <code>U</code> / <code>R</code> / <code>M</code> letter). So hiding <code>rarity</code> <strong>automatically</strong> also covers the <code>set</code> symbol and the <code>collector</code> line on the card image, so the answer isn't sitting in plain sight. You don't need to list those yourself.</p>
+<p><strong>General rule:</strong> if a question asks about something printed on the card (mana cost, type, rarity…), add that region to <code>hide</code> — otherwise the card shows the answer.</p>
+</blockquote>
+<p>Example — ask for the mana cost while hiding both the name and the mana cost itself:</p>
+<pre><code class="language-json">&quot;question_image&quot;: {
+  &quot;card&quot;: &quot;Lightning Bolt&quot;,
+  &quot;hide&quot;: [&quot;name&quot;, &quot;mana_cost&quot;]
+}
+</code></pre>
+<p>Example — ask for rarity and price together:</p>
+<pre><code class="language-json">&quot;question_image&quot;: {
+  &quot;card&quot;: &quot;Black Lotus&quot;,
+  &quot;hide&quot;: [&quot;rarity&quot;, &quot;price&quot;]
+}
+</code></pre>
+<p>When the timer ends and the round transitions to REVEAL, <strong>all censors and chip placeholders are lifted automatically</strong> — viewers see the full card with the real rarity and price.</p>
+<p>The card-region rectangles are tuned for the modern Magic frame (M15 / 2015 onward), which is what Scryfall returns for nearly all reprints. Old-frame (Alpha-era) cards may have the censor block slightly offset. Prices come from Scryfall and are cached for 30 days, so the displayed value may lag the live market by a few weeks.</p>
+<h4 id="pinning-a-specific-printing">Pinning a specific printing</h4>
+<p>By default, Scryfall picks whichever printing it ranks highest for the card name — that's often a recent reprint, not the canonical version. To force a specific printing, add a <code>set</code> field with the Scryfall set code:</p>
+<pre><code class="language-json">&quot;question_image&quot;: {
+  &quot;card&quot;: &quot;Black Lotus&quot;,
+  &quot;set&quot;: &quot;lea&quot;
+}
+</code></pre>
+<table>
+<thead>
+<tr>
+<th>Set code examples</th>
+<th>Set</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>lea</code></td>
+<td>Limited Edition Alpha</td>
+</tr>
+<tr>
+<td><code>leb</code></td>
+<td>Limited Edition Beta</td>
+</tr>
+<tr>
+<td><code>2ed</code></td>
+<td>Unlimited</td>
+</tr>
+<tr>
+<td><code>4ed</code></td>
+<td>Fourth Edition</td>
+</tr>
+<tr>
+<td><code>mmq</code></td>
+<td>Mercadian Masques</td>
+</tr>
+<tr>
+<td><code>m15</code></td>
+<td>Magic 2015 (first modern frame)</td>
+</tr>
+<tr>
+<td><code>2x2</code></td>
+<td>Double Masters 2022</td>
+</tr>
+<tr>
+<td><code>lci</code></td>
+<td>Lost Caverns of Ixalan</td>
+</tr>
+</tbody>
+</table>
+<p>Browse all set codes at <a href="https://scryfall.com/sets">scryfall.com/sets</a>. The <code>set</code> field is case-insensitive and works on both <code>question_image</code> and individual option entries.</p>
+<p>Pinning a printing affects: the card image shown, the rarity chip (different sets often print the same card at different rarities), and the price (different printings have different market prices). It does <strong>not</strong> change the card's gameplay rules, mana cost, or text — those are universal.</p>
+<p>The server validates the file at startup and refuses to start with a clear error if anything is wrong.</p>
+<h3 id="5-add-your-background-graphic-optional">5. Add your background graphic (optional)</h3>
+<p>Drop a PNG named <code>background.png</code> into <code>static/</code>. It will be used as the full-screen background of the trivia overlay. If the file is missing, a dark purple/blue gradient is used as a fallback.</p>
+<h3 id="6-run-the-server">6. Run the server</h3>
+<p>Double-click <code>trivia.bat</code>. A console window opens and stays open while the loop runs. You should see:</p>
+<pre><code>[trivia] loading questions from ...questions.json
+[trivia] loaded 8 questions
+[trivia] prewarming 7 Scryfall card images...
+[trivia] prewarmed 7/7 card images
+[trivia] serving overlay at http://localhost:8765/overlay
+[trivia] vote endpoint: http://localhost:8765/vote?user=&lt;name&gt;&amp;choice=A
+[trivia] close this window or Ctrl+C to stop
+</code></pre>
+<p>Open <code>http://localhost:8765/overlay</code> in a regular browser to confirm it renders. To stop the server, close the console window or hit Ctrl+C.</p>
+<h2 id="obs-setup">OBS Setup</h2>
+<ol>
+<li>In OBS, add a <strong>Browser Source</strong> to your BRB scene.</li>
+<li>Set the URL to <code>http://localhost:8765/overlay</code>.</li>
+<li>Width: <code>1920</code>, Height: <code>1080</code> (or match your canvas).</li>
+<li>Make sure <strong>Shutdown source when not visible</strong> is <strong>off</strong> — otherwise OBS reloads the page on every scene switch and viewers see "Loading..." for a moment.</li>
+</ol>
+<h2 id="mix-it-up-integration">Mix It Up Integration</h2>
+<p>The viewers' votes are forwarded to this tool by Mix It Up's <strong>Web Request</strong> action.</p>
+<h3 id="wiring-vote">Wiring <code>!vote</code></h3>
+<ol>
+<li>Open Mix It Up -&gt; <strong>Commands</strong> -&gt; <strong>Chat Commands</strong> -&gt; create a command:
+   - <strong>Name:</strong> <code>Trivia Vote</code>
+   - <strong>Trigger:</strong> <code>!vote</code>
+   - <strong>Require argument:</strong> Yes (or just set "Arguments Required" to 1)</li>
+<li>Add a <strong>Web Request</strong> action:
+   - <strong>Method:</strong> <code>GET</code>
+   - <strong>URL:</strong> <code>http://localhost:8765/vote?user=$username&amp;choice=$arg1text&amp;display=$userdisplayname</code>
+   - Leave the response handling empty — the server returns 200 OK with no body, and we don't want a chat reply (counts update on the overlay).</li>
+<li><strong>No Chat action.</strong> A chat reply on every vote would spam.</li>
+</ol>
+<p>That's it. Viewers type <code>!vote A</code> (or B, C, D, case-insensitive). The overlay tally bar updates within half a second.</p>
+<p>The <code>&amp;display=$userdisplayname</code> part is what makes the leaderboard show nicely-cased names (e.g. <code>ResetwithTori</code> instead of <code>resetwithtori</code>). It's optional — if you leave it off, the scoreboard falls back to the lowercase login name.</p>
+<h3 id="scoreboard">Scoreboard</h3>
+<p>Every correct answer earns points, weighted by question difficulty (Easy = 1, Medium = 2, Difficult = 3 by default — tune with <code>POINTS_*</code> in <code>.env</code>). The leaderboard on the right of the overlay shows <strong>one board at a time and rotates</strong> between two boards every <code>SCOREBOARD_ROTATE_SECONDS</code> (default 6s). Whoever just scored gets a little <code>+N</code> pop during the reveal:</p>
+<ul>
+<li><strong>This Session</strong> — resets every time you start the server. This is the "who's winning right now" board for the current stream.</li>
+<li><strong>All-Time</strong> — persists across restarts. Saved to <code>scores.json</code> (next to the script). It keeps growing until you clear it.</li>
+</ul>
+<p>Early on, when only one board has any points, the overlay parks on that one and only starts alternating once both have entries.</p>
+<p>Clearing the standings:</p>
+<ul>
+<li><strong>Restart the server</strong> → the This-Session board resets; All-Time is untouched.</li>
+<li><strong><code>!trivia_reset</code></strong> (mod command below) → resets This-Session by default.</li>
+<li><strong>Wipe All-Time</strong> → delete <code>scores.json</code>, or use <code>!trivia_reset</code> with <code>?scope=total</code>. Deleting the file is the simplest way to start the all-time competition fresh.</li>
+</ul>
+<p>Set <code>SHOW_SCOREBOARD=false</code> to hide both boards entirely.</p>
+<h3 id="optional-trivia_skip-for-mods">Optional: <code>!trivia_skip</code> for mods</h3>
+<p>If a question is broken or you want to move on, you can skip the current phase via HTTP. To wire it up:</p>
+<ol>
+<li>Create a Mix It Up Chat Command with trigger <code>!trivia_skip</code>, restricted to <strong>Moderators and Above</strong>.</li>
+<li>Add a <strong>Web Request</strong> action:
+   - <strong>Method:</strong> <code>POST</code>
+   - <strong>URL:</strong> <code>http://localhost:8765/skip</code>
+   - If you set <code>SKIP_SECRET</code> in <code>.env</code>, also add a header <code>X-Skip-Secret: &lt;your secret&gt;</code>.</li>
+</ol>
+<p>Skipping during ASK jumps to REVEAL immediately. Skipping during REVEAL jumps to the next question.</p>
+<h3 id="optional-trivia_reset-for-mods">Optional: <code>!trivia_reset</code> for mods</h3>
+<p>To clear a leaderboard mid-stream (e.g. starting a fresh competition), wire a mod-only command the same way:</p>
+<ol>
+<li>Create a Mix It Up Chat Command with trigger <code>!trivia_reset</code>, restricted to <strong>Moderators and Above</strong>.</li>
+<li>Add a <strong>Web Request</strong> action:
+   - <strong>Method:</strong> <code>POST</code>
+   - <strong>URL:</strong> <code>http://localhost:8765/reset</code> (add <code>?scope=total</code> to clear All-Time, or <code>?scope=all</code> to clear both)
+   - If you set <code>SKIP_SECRET</code> in <code>.env</code>, also add a header <code>X-Skip-Secret: &lt;your secret&gt;</code> (the same secret gates both skip and reset).</li>
+</ol>
+<p>The board clears within half a second. <code>scope</code> defaults to <code>session</code>. To wipe the All-Time board without a command, just delete <code>scores.json</code> and restart.</p>
+<h2 id="why-a-local-web-server-instead-of-the-localfile-overlay-pattern">Why a local web server (instead of the <code>{LocalFile:...}</code> overlay pattern)</h2>
+<p>The sibling <code>MixItUpMagic8CardCommand</code> writes a timestamped JPG and lets a Mix It Up HTML Overlay action display it via <code>{LocalFile:\\$path}</code>. That works great for a one-shot draw, but a trivia round has live state: an accumulating vote tally, a ticking countdown, and a phase transition from ASK to REVEAL. None of that maps cleanly to Mix It Up's overlay token.</p>
+<p>Running a tiny local Flask server side-steps all of it: the overlay is just a static page that polls <code>/state</code> every 500ms, which is trivially debuggable (you can hit <code>/state</code> in any browser to see exactly what the overlay sees). And <code>/vote</code> gives Mix It Up a clean endpoint to forward chat votes to.</p>
+<h2 id="troubleshooting">Troubleshooting</h2>
+<table>
+<thead>
+<tr>
+<th>Symptom</th>
+<th>Cause / Fix</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Console says <code>Python is not installed on this machine.</code></td>
+<td>Neither <code>py</code> nor <code>python</code> resolves to a real Python. Install Python from <a href="https://www.python.org/downloads/">python.org</a> (check <strong>Add Python to PATH</strong>) and, if needed, disable the App execution aliases for <code>python.exe</code> / <code>python3.exe</code> in Windows Settings.</td>
+</tr>
+<tr>
+<td>Console shows <code>Address already in use</code> / <code>OSError: [WinError 10048]</code></td>
+<td>Port 8765 is occupied (maybe a previous run didn't shut down). Either kill the leftover Python process in Task Manager, or set <code>PORT=8766</code> in <code>.env</code>.</td>
+</tr>
+<tr>
+<td>Overlay shows "Loading trivia..." and never advances</td>
+<td>The browser can't reach the server. Confirm the server console is still running and that the URL is <code>http://localhost:8765/overlay</code>. If OBS uses <code>127.0.0.1</code> instead of <code>localhost</code>, that's fine too.</td>
+</tr>
+<tr>
+<td>Votes from chat don't update the overlay</td>
+<td>Open the Mix It Up command and confirm the Web Request URL is exactly <code>http://localhost:8765/vote?user=$username&amp;choice=$arg1text</code>. Test by visiting that URL in a browser with your name and <code>choice=A</code> substituted — the tally should change. If it doesn't, check that the bot username isn't on the denylist.</td>
+</tr>
+<tr>
+<td>One option has no card image but others do</td>
+<td>Scryfall couldn't resolve that card name at startup. Check the console for <code>[scryfall] lookup failed for '&lt;name&gt;'</code>. Fix the name in <code>questions.json</code> (Scryfall's <code>?fuzzy=</code> is forgiving, but typos still bite) and restart.</td>
+</tr>
+<tr>
+<td>Background graphic doesn't show</td>
+<td>Confirm the file is at <code>static/background.png</code> (exact filename). Refresh the OBS Browser Source (right-click -&gt; Refresh). Hard-refresh the page in a regular browser to confirm the file is reachable at <code>http://localhost:8765/static/background.png</code>.</td>
+</tr>
+<tr>
+<td>Console refuses to start with a <code>questions.json</code> error</td>
+<td>The validator caught a schema problem. The error message names the exact path (e.g. <code>questions[2].options[3].card</code>). Fix and restart.</td>
+</tr>
+<tr>
+<td>Viewers say their <code>!vote</code> fired but their answer didn't count</td>
+<td>They voted before the question started or after the timer expired. Votes outside the ASK phase are silently dropped — that's the design.</td>
+</tr>
+<tr>
+<td>OBS Browser Source goes blank after a scene change</td>
+<td>Turn off "Shutdown source when not visible" on the Browser Source properties — otherwise OBS reloads the page every time you switch back to BRB.</td>
+</tr>
+</tbody>
+</table>
+<h2 id="files">Files</h2>
+<table>
+<thead>
+<tr>
+<th>File</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>trivia_server.py</code></td>
+<td>Flask app + entry point</td>
+</tr>
+<tr>
+<td><code>game_loop.py</code></td>
+<td>Background thread driving phase transitions</td>
+</tr>
+<tr>
+<td><code>game_state.py</code></td>
+<td>Thread-safe state container</td>
+</tr>
+<tr>
+<td><code>questions.py</code></td>
+<td>Loads + validates <code>questions.json</code>; shuffle bag iterator</td>
+</tr>
+<tr>
+<td><code>scryfall_api.py</code></td>
+<td>Scryfall lookups (by name) + image download + caching</td>
+</tr>
+<tr>
+<td><code>cache.py</code></td>
+<td>File-based JSON cache (Scryfall image URLs, 30-day TTL)</td>
+</tr>
+<tr>
+<td><code>config.py</code></td>
+<td>Environment loading + timing helper</td>
+</tr>
+<tr>
+<td><code>questions.json</code></td>
+<td>The trivia content — edit this to add/remove questions</td>
+</tr>
+<tr>
+<td><code>trivia.bat</code></td>
+<td>Windows entry point that prefers the <code>py</code> launcher</td>
+</tr>
+<tr>
+<td><code>static/overlay.html</code></td>
+<td>The page OBS Browser Source points at</td>
+</tr>
+<tr>
+<td><code>static/style.css</code></td>
+<td>Overlay styling and difficulty badge colors</td>
+</tr>
+<tr>
+<td><code>static/overlay.js</code></td>
+<td>Polls <code>/state</code> and renders the overlay</td>
+</tr>
+<tr>
+<td><code>static/background.png</code></td>
+<td>(Optional) Your custom background graphic — not committed</td>
+</tr>
+<tr>
+<td><code>static/cards/</code></td>
+<td>Auto-populated Scryfall card images — not committed</td>
+</tr>
+<tr>
+<td><code>.env.example</code></td>
+<td>Template for optional configuration</td>
+</tr>
+<tr>
+<td><code>.cache.json</code></td>
+<td>Auto-generated Scryfall response cache — not committed</td>
+</tr>
+<tr>
+<td><code>scores.json</code></td>
+<td>All-time leaderboard — auto-generated, not committed. Delete to wipe all-time standings</td>
+</tr>
+</tbody>
+</table>
+<h2 id="privacy-note">Privacy Note</h2>
+<p>This tool makes anonymous requests to the public Scryfall API. No API keys or credentials are required. The local web server binds to <code>0.0.0.0:8765</code> so you can point a phone or tablet at it for testing on your LAN; if you'd rather restrict it to your own machine, change <code>host="0.0.0.0"</code> to <code>host="127.0.0.1"</code> in <code>trivia_server.py</code>.</p>
+<h2 id="license">License</h2>
+<p>MIT — see the parent repository for license details.</p>
+    <div class="doc-footer">Generated from README.md &middot; Mix It Up MTG Trivia Game</div>
+  </main>
+</body>
+</html>
