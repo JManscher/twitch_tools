@@ -1,0 +1,192 @@
+{
+  "version": 1,
+  "questions": [
+    {
+      "id": "q-001",
+      "difficulty": "Easy",
+      "question": "Which color is most associated with creature destruction and removal?",
+      "question_image": null,
+      "options": [
+        { "text": "White", "card": null },
+        { "text": "Black", "card": null },
+        { "text": "Blue",  "card": null },
+        { "text": "Green", "card": null }
+      ],
+      "correct": 1,
+      "explanation": "Black holds the largest share of unconditional creature removal in MTG's color pie."
+    },
+    {
+      "id": "q-002",
+      "difficulty": "Easy",
+      "question": "Which of these is a classic one-mana red burn spell that deals 3 damage?",
+      "question_image": null,
+      "options": [
+        { "text": "Lightning Bolt",   "card": "Lightning Bolt" },
+        { "text": "Shock",            "card": "Shock" },
+        { "text": "Lava Spike",       "card": "Lava Spike" },
+        { "text": "Searing Spear",    "card": "Searing Spear" }
+      ],
+      "correct": 0,
+      "explanation": "Lightning Bolt: 1R, deals 3 damage to any target. The benchmark every burn spell is measured against."
+    },
+    {
+      "id": "q-003",
+      "difficulty": "Medium",
+      "question": "Which card is shown here?",
+      "question_image": {
+        "card": "Black Lotus",
+        "set": "lea",
+        "alt_text": "A famous artifact card from Alpha",
+        "hide": ["name"]
+      },
+      "options": [
+        { "text": "Mox Sapphire", "card": null },
+        { "text": "Sol Ring",    "card": null },
+        { "text": "Black Lotus", "card": null },
+        { "text": "Mana Crypt",  "card": null }
+      ],
+      "correct": 2,
+      "explanation": "Black Lotus — Alpha (lea), 1993. Sacrifice it for three mana of any one color. The most iconic card in Magic's history."
+    },
+    {
+      "id": "q-004",
+      "difficulty": "Medium",
+      "question": "Which planeswalker first appeared on the card 'Jace, the Mind Sculptor'?",
+      "question_image": null,
+      "options": [
+        { "text": "Jace Beleren",         "card": "Jace Beleren" },
+        { "text": "Jace, the Mind Sculptor", "card": "Jace, the Mind Sculptor" },
+        { "text": "Chandra Nalaar",       "card": "Chandra Nalaar" },
+        { "text": "Liliana Vess",         "card": "Liliana Vess" }
+      ],
+      "correct": 1,
+      "explanation": "Jace, the Mind Sculptor debuted in Worldwake (2010) and is widely considered one of the most powerful planeswalkers ever printed."
+    },
+    {
+      "id": "q-005",
+      "difficulty": "Difficult",
+      "question": "Which of these is part of the original Power Nine?",
+      "question_image": null,
+      "options": [
+        { "text": "Mana Drain",    "card": "Mana Drain" },
+        { "text": "Library of Alexandria", "card": "Library of Alexandria" },
+        { "text": "Ancestral Recall",      "card": "Ancestral Recall" },
+        { "text": "Force of Will",         "card": "Force of Will" }
+      ],
+      "correct": 2,
+      "explanation": "The Power Nine: Black Lotus, the five Moxen, Time Walk, Ancestral Recall, and Timetwister — all from Alpha/Beta/Unlimited."
+    },
+    {
+      "id": "q-006",
+      "difficulty": "Difficult",
+      "question": "Counterspell's original mana cost is...",
+      "question_image": { "card": "Counterspell", "alt_text": "A blue instant", "hide": ["mana_cost"] },
+      "options": [
+        { "text": "1U",  "card": null },
+        { "text": "UU",  "card": null },
+        { "text": "2U",  "card": null },
+        { "text": "1UU", "card": null }
+      ],
+      "correct": 1,
+      "explanation": "Counterspell costs UU — two blue mana, no generic. It's been the gold standard for counter magic since Alpha."
+    },
+    {
+      "id": "q-007",
+      "difficulty": "Easy",
+      "question": "Which creature type is associated with the card 'Llanowar Elves'?",
+      "question_image": null,
+      "options": [
+        { "text": "Goblin",   "card": null },
+        { "text": "Elf",      "card": null },
+        { "text": "Faerie",   "card": null },
+        { "text": "Merfolk",  "card": null }
+      ],
+      "correct": 1,
+      "explanation": "Llanowar Elves is the iconic one-mana 1/1 Elf Druid that taps for green — printed in nearly every era of Magic."
+    },
+    {
+      "id": "q-008",
+      "difficulty": "Medium",
+      "question": "Which keyword ability gives a creature 'this creature can't be blocked except by creatures with flying or reach'?",
+      "question_image": null,
+      "options": [
+        { "text": "Flying",    "card": null },
+        { "text": "Trample",   "card": null },
+        { "text": "Menace",    "card": null },
+        { "text": "Skulk",     "card": null }
+      ],
+      "correct": 0,
+      "explanation": "Flying — one of the original evergreen abilities. Reach was introduced as the counter-keyword so ground creatures could block fliers."
+    },
+    {
+      "id": "q-009",
+      "difficulty": "Easy",
+      "question": "What's the mana cost of the card shown here? (Name and mana cost are hidden!)",
+      "question_image": {
+        "card": "Lightning Bolt",
+        "alt_text": "Red instant, deals 3 damage",
+        "hide": ["name", "mana_cost"]
+      },
+      "options": [
+        { "text": "R",   "card": null },
+        { "text": "1R",  "card": null },
+        { "text": "2R",  "card": null },
+        { "text": "RR",  "card": null }
+      ],
+      "correct": 0,
+      "explanation": "Lightning Bolt costs R — one red mana, deals 3 damage to any target. The benchmark every burn spell is measured against."
+    },
+    {
+      "id": "q-010",
+      "difficulty": "Medium",
+      "question": "Guess this card by its art and text alone — the name is hidden.",
+      "question_image": {
+        "card": "Counterspell",
+        "alt_text": "A blue counter spell",
+        "hide": ["name"]
+      },
+      "options": [
+        { "text": "Mana Leak",     "card": null },
+        { "text": "Counterspell",  "card": null },
+        { "text": "Negate",        "card": null },
+        { "text": "Force Spike",   "card": null }
+      ],
+      "correct": 1,
+      "explanation": "Counterspell — UU, counter target spell. Since Alpha, still the cleanest counter in the game."
+    },
+    {
+      "id": "q-011",
+      "difficulty": "Medium",
+      "question": "What rarity does this card carry?",
+      "question_image": {
+        "card": "Counterspell",
+        "hide": ["rarity"]
+      },
+      "options": [
+        { "text": "Common",      "card": null },
+        { "text": "Uncommon",    "card": null },
+        { "text": "Rare",        "card": null },
+        { "text": "Mythic Rare", "card": null }
+      ],
+      "correct": 1,
+      "explanation": "Counterspell has historically been Common or Uncommon depending on the set — it's a curriculum staple, not a chase card."
+    },
+    {
+      "id": "q-012",
+      "difficulty": "Difficult",
+      "question": "Roughly how much does this card cost on the Scryfall market?",
+      "question_image": {
+        "card": "Force of Will",
+        "hide": ["price"]
+      },
+      "options": [
+        { "text": "Under $10",   "card": null },
+        { "text": "$10 – $30",   "card": null },
+        { "text": "$30 – $100",  "card": null },
+        { "text": "Over $100",   "card": null }
+      ],
+      "correct": 2,
+      "explanation": "Force of Will sits in the $50–$80 range on most Scryfall-tracked printings — a tier-1 eternal staple but not as eye-watering as the Reserved-List Power Nine."
+    }
+  ]
+}
