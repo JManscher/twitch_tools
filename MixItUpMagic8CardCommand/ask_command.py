@@ -13,13 +13,6 @@ import time
 
 _start_time = time.perf_counter()
 
-# Ensure the em-dash and any other non-ASCII chars survive whatever code page
-# the host (cmd.exe, Mix It Up) is using when it reads stdout.
-try:
-    sys.stdout.reconfigure(encoding="utf-8")
-except (AttributeError, OSError):
-    pass
-
 try:
     import config
     import scryfall_api
@@ -40,12 +33,11 @@ def main():
             pass  # Mix It Up sentinel for "no argument"
 
     try:
-        name, verdict, image_path = scryfall_api.draw_card()
-        # Line 1: chat message ($externalprogramresult's first line in Mix It Up).
-        # Line 2: image path, for the overlay action when reading stdout directly.
-        # A pointer file (config.POINTER_FILE) is also written for File Read wiring.
-        print(f"The cards say {verdict} — {name}")
-        print(image_path)
+        name, verdict, _ = scryfall_api.draw_card()
+        # Stdout is exactly one line so Mix It Up's $externalprogramresult is
+        # safe to drop straight into a Chat action. The image path is written
+        # to config.POINTER_FILE for the Overlay action to pick up via File Read.
+        print(f"The cards say {verdict}: {name}")
     except scryfall_api.ScryfallAPIError as e:
         print(f"The cards are silent ({e}).")
         sys.exit(0)

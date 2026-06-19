@@ -17,14 +17,13 @@ The question text is accepted but ignored — like a real Magic 8-Ball, the card
 
 ## Output
 
-Two lines on stdout:
+A single line on stdout — safe to drop straight into a Mix It Up Chat action:
 
 ```
-The cards say IT IS CERTAIN — Lightning Bolt
-C:\Path\To\MixItUpMagic8CardCommand\card-1737654321123.jpg
+The cards say IT IS CERTAIN: Lightning Bolt
 ```
 
-A pointer file `latest_card_path.txt` is also written next to the script (or in `IMAGE_OUTPUT_DIR`) containing just the absolute path to the newest card image — useful for Mix It Up File Read wiring.
+Alongside it, the script overwrites `latest_card_path.txt` (next to the script, or in `IMAGE_OUTPUT_DIR`) with the absolute native path to the newest card image (e.g. `C:\...\card-1737654321123.jpg`). Mix It Up's File Read action reads this into a special identifier so the HTML Overlay can reference it.
 
 On failure:
 
@@ -37,6 +36,8 @@ The cards are silent (random card request failed: ...).
 ### 1. Install Python
 
 Download and install Python 3.8+ from [python.org](https://www.python.org/downloads/) and check **Add Python to PATH** during install.
+
+> **Watch out for the Microsoft Store stub.** On a fresh Windows machine without real Python installed, typing `python` opens the Microsoft Store instead of running anything. If you see `Python was not found; run without arguments to install from the Microsoft Store...`, finish the python.org install above, then go to **Settings → Apps → Advanced app settings → App execution aliases** and turn off both `python.exe` and `python3.exe` entries. `ask.bat` prefers the `py` launcher (bundled with the python.org installer) so it sidesteps this stub once Python is actually installed.
 
 ### 2. Install Dependencies
 
@@ -74,48 +75,43 @@ You should see two stdout lines (verdict + image path), a fresh `card-<timestamp
 
 ### Why a fresh filename each run
 
-Mix It Up's Image Overlay loads files via a `file://` URL and the embedded browser caches by URL. If we re-wrote the same `latest_card.jpg` every time, the overlay would often keep showing the previous card. Writing `card-<timestamp>.jpg` instead gives every draw a unique path and forces the overlay to redraw.
+Mix It Up's overlay is an embedded browser that caches resources by URL. If we re-wrote the same `latest_card.jpg` every time, the overlay would often keep showing the previous card. Writing `card-<timestamp>.jpg` instead gives every draw a unique URL and forces the overlay to redraw.
 
-That means your overlay action needs a **dynamic** path. Two ways to wire that, pick whichever fits your Mix It Up version.
+### How Mix It Up loads local files in an overlay
 
-### Wiring option A — multi-line stdout
+For browser security reasons the overlay **cannot load local file paths directly** — neither as raw paths nor as `file:///` URLs. Mix It Up provides a dedicated token instead. Per the [Mix It Up Wiki](https://wiki.mixitupapp.com/en/services/overlay), the exact required syntax is:
 
-The script prints chat message on line 1 and the new image path on line 2. If your Mix It Up version exposes each captured line separately (often `$externalprogramresult1`, `$externalprogramresult2`):
+```
+{LocalFile:\\C:\Path\To\Your\Image.png}
+```
 
-1. **External Program**
+Note the **literal `\\` prefix before the drive letter** — that's a Mix It Up convention, not an HTML escape. Omitting it produces a broken-image icon in the overlay even when everything else is wired correctly.
+
+The token composes with `$identifier` substitution: Mix It Up expands `$cardpath` first, then translates the whole `{LocalFile:...}` token to a fetchable URL. So in your HTML body you write `{LocalFile:\\$cardpath}` and at runtime Mix It Up sees `{LocalFile:\\C:\...\card-1737654321123.jpg}` which is the form the wiki documents.
+
+### Wiring the `!ask` command
+
+1. Open Mix It Up → **Commands** → **Chat Commands** → create a command named `!ask` with trigger `!ask`.
+2. Add an **External Program** action:
    - **File Path:** `C:\Path\To\Your\MixItUpMagic8CardCommand\ask.bat`
    - **Arguments:** `$arg1text`
    - **Wait for finish:** Yes
    - **Show window:** No
-2. **Chat**
-   - **Message:** `$externalprogramresult1` (or whatever identifier maps to the first line)
-3. **Overlay → Show Image**
-   - **Image Path:** `$externalprogramresult2`
-
-### Wiring option B — pointer file (most robust)
-
-Every run also overwrites `latest_card_path.txt` with the absolute path to the new image. If you use Mix It Up's File Read action you don't have to rely on multi-line capture at all.
-
-1. **External Program**
-   - As above. `$externalprogramresult` ends up being the multi-line output; we'll only consume the first line for chat.
-2. **Chat**
-   - **Message:** `$externalprogramresult`
-   - (Mix It Up will post the first line as the chat message; the trailing path line is harmless but if you want it stripped, use a Text/Replace action on `\r?\n.*` first.)
-3. **File Read** action
+3. Add a **File Read** action:
    - **File Path:** `C:\Path\To\Your\MixItUpMagic8CardCommand\latest_card_path.txt`
-   - **Save to:** a Special Identifier, e.g. `$cardpath`
-4. **Overlay → Show Image**
-   - **Image Path:** `$cardpath`
-   - Configure entrance animation, duration, and position to taste.
+   - **Save to Special Identifier:** `cardpath`
+4. Add a **Chat** action:
+   - **Message:** `$externalprogramresult`
+   - The script's stdout is a single line (verdict + card name), so this drops straight into chat with no parsing needed.
+5. Add an **Overlay → HTML** action:
+   - **Reference Name:** anything unique, e.g. `cardpopup` (this is the field Mix It Up requires before letting you save — it's how later actions can target or remove this overlay item).
+   - **HTML** (paste as a single line — Mix It Up's HTML field breaks tags at line breaks, so anything spanning multiple lines inside the tag will render as visible text instead of attributes):
+     ```html
+     <img src="{LocalFile:\\$cardpath}" style="max-width:400px;max-height:560px;border-radius:12px;box-shadow:0 6px 24px rgba(0,0,0,0.5);" />
+     ```
+   - Configure entrance/exit animations, duration, and position on the action to taste — these are Overlay-action settings, not HTML.
 
-### Setting up the command
-
-1. Open Mix It Up
-2. Go to **Commands** → **Chat Commands**
-3. Create a new chat command:
-   - **Name:** `!ask`
-   - **Trigger:** `!ask`
-4. Add the actions above for your chosen wiring option.
+That's the full wiring. The Overlay → **Show Image** action is the wrong tool here: its path field doesn't substitute identifiers, and overlays can't load local paths without the `{LocalFile:...}` token anyway. Stick with **Overlay → HTML**.
 
 ### How It Works
 
@@ -125,6 +121,18 @@ Every run also overwrites `latest_card_path.txt` with the absolute path to the n
 ## Cleanup
 
 Each run keeps the `KEEP_IMAGES` most recently modified `card-*.jpg` files in `IMAGE_OUTPUT_DIR` and deletes the rest. The default of 5 leaves enough headroom that the file currently being displayed by the overlay won't be deleted out from under it.
+
+## Troubleshooting
+
+| Symptom | Cause / Fix |
+|---|---|
+| Chat says `The cards are silent (Python is not installed on this machine).` | Neither `py` nor `python` resolves to a real Python install. Install Python from [python.org](https://www.python.org/downloads/) (check **Add Python to PATH**) and, if needed, disable the App execution aliases for `python.exe` / `python3.exe` in Windows Settings. |
+| Running `.\ask.bat` opens the Microsoft Store | Same as above — Windows is routing `python` to its Store stub. Install Python and disable the alias. |
+| Chat says `The cards are silent (random card request failed: ...)` | Network reached, Scryfall didn't. Usually transient — retry. Persistent failures mean the host is offline or DNS to `api.scryfall.com` is blocked. |
+| HTML Overlay action won't save / asks for a reference | The **Reference Name** field is required — type anything unique (e.g. `cardpopup`). It's the handle Mix It Up uses to identify this overlay item in later actions, not an image source. |
+| HTML Overlay shows a broken-image icon | Likely causes, in order: (a) you wrote `{LocalFile:$cardpath}` instead of `{LocalFile:\\$cardpath}` — the wiki requires the literal `\\` prefix before the drive letter; (b) you used `$cardpath` raw or as `file:///...` without `{LocalFile:...}` at all — the overlay's browser can't load local paths without that token; (c) the File Read action runs *after* the Overlay action, so `$cardpath` is empty when the HTML renders — reorder so File Read precedes the Overlay action. |
+| Overlay shows tiny broken-image icon AND visible text like `style="max-width: 400px..."` | Your `<img>` tag was pasted across multiple lines and Mix It Up's HTML field broke it at the newline, so the `style` attribute is now sitting outside the tag. Re-paste the snippet as a single line. |
+| Chat message looks fine but the overlay shows an old card | The overlay is caching the previous URL. Make sure your `<img>` uses `{LocalFile:\\$cardpath}` — `$cardpath` is the timestamped filename and changes on every run, so the URL Mix It Up generates is also unique each time. If the chat line cites a new card name but the overlay doesn't change, your File Read is reading a stale path — confirm the action order. |
 
 ## Files
 
@@ -136,7 +144,7 @@ Each run keeps the `KEEP_IMAGES` most recently modified `card-*.jpg` files in `I
 | `ask.bat` | Windows batch wrapper for Mix It Up |
 | `.env.example` | Template for optional configuration |
 | `card-<timestamp>.jpg` | Auto-generated card images, pruned to the most recent N (not committed) |
-| `latest_card_path.txt` | Auto-generated pointer to the newest card image (not committed) |
+| `latest_card_path.txt` | Auto-generated pointer to the newest card image, read by Mix It Up's File Read action (not committed) |
 
 ## Privacy Note
 
