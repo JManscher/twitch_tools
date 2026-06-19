@@ -72,13 +72,13 @@ class GameState:
         except OSError as e:
             print(f"[trivia] WARN: could not save all-time scores: {e}")
 
-    def _info_for(self, name, set_code) -> Optional[dict]:
+    def _info_for(self, name, set_code, print_id=None) -> Optional[dict]:
         if not name:
             return None
-        return self._card_info.get((name, set_code))
+        return self._card_info.get((name, set_code, print_id))
 
-    def _image_for(self, name, set_code) -> Optional[str]:
-        info = self._info_for(name, set_code)
+    def _image_for(self, name, set_code, print_id=None) -> Optional[str]:
+        info = self._info_for(name, set_code, print_id)
         return info.get("image") if info else None
 
     def start_ask(self, question: dict, ends_at_ms: float) -> None:
@@ -221,7 +221,7 @@ class GameState:
             question_image_price = None
             if q and q.get("question_image"):
                 qi = q["question_image"]
-                info = self._info_for(qi["card"], qi.get("set")) or {}
+                info = self._info_for(qi["card"], qi.get("set"), qi.get("print_id")) or {}
                 question_image_path = info.get("image")
                 question_image_hide = list(qi.get("hide") or [])
                 question_image_rarity = info.get("rarity")
@@ -230,7 +230,7 @@ class GameState:
             options_view = []
             if q:
                 for opt in q["options"]:
-                    image_path = self._image_for(opt.get("card"), opt.get("set"))
+                    image_path = self._image_for(opt.get("card"), opt.get("set"), opt.get("print_id"))
                     options_view.append({
                         "text": opt["text"],
                         "image": image_path,

@@ -126,10 +126,11 @@ def create_editor_app() -> Flask:
     def card():
         name = (request.args.get("name") or "").strip()
         set_code = (request.args.get("set") or "").strip() or None
-        if not name:
+        print_id = (request.args.get("print_id") or "").strip() or None
+        if not name and not print_id:
             return jsonify({"ok": False, "error": "name is required"}), 400
         try:
-            info = scryfall_api.fetch_card_by_name(name, set_code=set_code)
+            info = scryfall_api.fetch_card_by_name(name, set_code=set_code, print_id=print_id)
         except scryfall_api.ScryfallAPIError as e:
             return jsonify({"ok": False, "error": str(e)})
         return jsonify({"ok": True, **info})

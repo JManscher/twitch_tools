@@ -202,11 +202,13 @@ Browse all set codes at [scryfall.com/sets](https://scryfall.com/sets). The `set
 
 Pinning a printing affects: the card image shown, the rarity chip (different sets often print the same card at different rarities), and the price (different printings have different market prices). It does **not** change the card's gameplay rules, mana cost, or text — those are universal.
 
+To pin **one exact printing** — a specific collector number, art, or **language** (e.g. the Japanese version of a card) — a `question_image`/option can also carry a `print_id` (a Scryfall card id). The visual editor's Printing dropdown sets this for you; the `set` field alone can only target an English printing of a set.
+
 The server validates the file at startup and refuses to start with a clear error if anything is wrong.
 
 ### 5. Edit questions & manage lists with the visual editor (optional)
 
-Editing `questions.json` by hand is fiddly. A small **local editor** lets you add, edit, reorder, and delete questions through a form — with live Scryfall card previews and a **printing picker** (choose "Limited Edition Alpha · 1993 · Rare" from a dropdown instead of typing set codes).
+Editing `questions.json` by hand is fiddly. A small **local editor** lets you add, edit, reorder, and delete questions through a form — with live Scryfall card previews and a **printing picker** (pick the exact printing from a dropdown instead of typing set codes — including specific collector numbers and **foreign-language cards**, e.g. "Secrets of Strixhaven Mystical Archive · #156 · JA"). The chosen printing is pinned by its Scryfall id, so the exact card you picked is what shows.
 
 1. Double-click **`editor.bat`**. A console window opens and your browser opens to the editor automatically (set `OPEN_BROWSER=false` in `.env` to disable, then open **`http://localhost:8766/`** yourself).
 3. Pick a question on the left (or **➕ Add**); fill in the form on the right — difficulty, question text, the four answers (mark the correct one), optional card images on the question and/or answers, what to hide, and an explanation.

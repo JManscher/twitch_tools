@@ -56,6 +56,24 @@ def _validate_set_code(value, where: str):
     return s
 
 
+def _validate_print_id(value, where: str):
+    """Validate an optional Scryfall print id (a UUID), used to pin one exact
+    printing — including a specific language/art the set code alone can't
+    target. Returns the lowercase id, or None if not present."""
+    if value is None:
+        return None
+    _check(isinstance(value, str), where, "must be a string when present")
+    s = value.strip().lower()
+    if s == "":
+        return None
+    _check(
+        all(c in "0123456789abcdef-" for c in s) and 8 <= len(s) <= 40,
+        where,
+        f"must be a Scryfall print id (UUID) when present (got {value!r}).",
+    )
+    return s
+
+
 def _validate_hide(value, where: str) -> list:
     """Validate an optional 'hide' array of region names. Returns the
     list (possibly empty); raises QuestionsError on invalid input."""
@@ -103,10 +121,12 @@ def _validate_question(q, index: int) -> dict:
         if alt is not None:
             _check(isinstance(alt, str), where + ".question_image.alt_text", "must be a string when present")
         set_code = _validate_set_code(question_image.get("set"), where + ".question_image.set")
+        print_id = _validate_print_id(question_image.get("print_id"), where + ".question_image.print_id")
         hide_qi = _validate_hide(question_image.get("hide"), where + ".question_image.hide")
         normalized_qimage = {
             "card": card_ref,
             "set": set_code,
+            "print_id": print_id,
             "alt_text": alt,
             "hide": hide_qi,
         }
@@ -124,11 +144,13 @@ def _validate_question(q, index: int) -> dict:
         if card is not None:
             _check(isinstance(card, str) and card.strip() != "", opt_where + ".card", "must be null or a non-empty string")
         set_code = _validate_set_code(opt.get("set"), opt_where + ".set")
+        print_id = _validate_print_id(opt.get("print_id"), opt_where + ".print_id")
         hide_opt = _validate_hide(opt.get("hide"), opt_where + ".hide")
         normalized_options.append({
             "text": text,
             "card": card,
             "set": set_code,
+            "print_id": print_id,
             "hide": hide_opt,
         })
 
@@ -218,16 +240,16 @@ def save(path: str, questions) -> List[dict]:
 
 
 def extract_card_refs(questions: List[dict]) -> Set[tuple]:
-    """Return all unique (card_name, set_code) tuples referenced across all
-    questions. set_code is None when the question didn't pin a printing."""
+    """Return all unique (card_name, set_code, print_id) tuples referenced
+    across all questions. set_code/print_id are None when not pinned."""
     refs: Set[tuple] = set()
     for q in questions:
         qi = q.get("question_image")
         if qi and qi.get("card"):
-            refs.add((qi["card"], qi.get("set")))
+            refs.add((qi["card"], qi.get("set"), qi.get("print_id")))
         for opt in q["options"]:
             if opt.get("card"):
-                refs.add((opt["card"], opt.get("set")))
+                refs.add((opt["card"], opt.get("set"), opt.get("print_id")))
     return refs
 
 

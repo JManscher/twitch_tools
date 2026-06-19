@@ -213,13 +213,15 @@ function buildCardEditor(holder, opts) {
 
   async function fetchCard() {
     const name = (holder.card || "").trim();
-    if (!name) { preview.innerHTML = `<span>No card</span>`; return; }
-    const setq = holder.set || "";
-    const key = `${name}|${setq}`;
+    const pid = holder.print_id || "";
+    if (!name && !pid) { preview.innerHTML = `<span>No card</span>`; return; }
+    const key = pid ? `id:${pid}` : `${name}|${holder.set || ""}`;
     if (cardCache.has(key)) { renderPreview(cardCache.get(key)); return; }
     preview.innerHTML = `<span>Loading…</span>`;
     try {
-      const url = `/api/card?name=${encodeURIComponent(name)}` + (setq ? `&set=${encodeURIComponent(setq)}` : "");
+      let url = `/api/card?name=${encodeURIComponent(name)}`;
+      if (pid) url += `&print_id=${encodeURIComponent(pid)}`;
+      else if (holder.set) url += `&set=${encodeURIComponent(holder.set)}`;
       const info = await (await fetch(url)).json();
       cardCache.set(key, info);
       renderPreview(info);
@@ -228,7 +230,7 @@ function buildCardEditor(holder, opts) {
 
   async function fetchPrintings() {
     const name = (holder.card || "").trim();
-    printSelect.length = 1; // keep Default
+    printSelect.length = 1; // keep "Default"
     printHint.textContent = "";
     if (!name) return;
     printHint.textContent = "Loading printings…";
@@ -242,34 +244,40 @@ function buildCardEditor(holder, opts) {
     } catch (e) { printHint.textContent = "Couldn't load printings"; return; }
     if (!data.ok) { printHint.textContent = data.error ? "No printings found" : ""; return; }
     printHint.textContent = `${data.printings.length} printing(s)`;
-    let found = false;
+    let matchedBySet = false;
     data.printings.forEach((p) => {
-      if (!p.set) return;
+      if (!p.id) return;
       const o = document.createElement("option");
-      o.value = p.set;
-      const year = (p.released || "").slice(0, 4);
-      o.textContent = `${p.set_name || p.set} · ${year} · ${p.rarity || ""}`.replace(/ · $/, "");
-      if (holder.set && holder.set === p.set) { o.selected = true; found = true; }
+      o.value = p.id;            // pin the EXACT printing
+      o.dataset.set = p.set || "";
+      const lang = (p.lang && p.lang !== "en") ? ` · ${p.lang.toUpperCase()}` : "";
+      o.textContent = `${p.set_name || p.set} · #${p.collector_number || "?"}${lang} · ${p.rarity || ""}`;
+      // Preselect: exact print id wins; otherwise visually land on the saved set.
+      if (holder.print_id && holder.print_id === p.id) {
+        o.selected = true;
+      } else if (!holder.print_id && holder.set && holder.set === p.set && !matchedBySet) {
+        o.selected = true; matchedBySet = true;
+      }
       printSelect.appendChild(o);
     });
-    // If the saved set isn't in the list, add it so the selection shows.
-    if (holder.set && !found) {
-      const o = document.createElement("option");
-      o.value = holder.set;
-      o.textContent = `${holder.set} (pinned)`;
-      o.selected = true;
-      printSelect.appendChild(o);
-    }
   }
 
   const onName = debounce(() => { fetchCard(); fetchPrintings(); }, 400);
   nameInput.addEventListener("input", () => {
     holder.card = nameInput.value.trim() || "";
+    holder.print_id = null;  // a new name invalidates any pinned printing
     setDirty(true);
     onName();
   });
   printSelect.addEventListener("change", () => {
-    holder.set = printSelect.value || null;
+    const opt = printSelect.selectedOptions[0];
+    if (!printSelect.value) {            // "Default (Scryfall's pick)"
+      holder.print_id = null;
+      holder.set = null;
+    } else {
+      holder.print_id = printSelect.value;
+      holder.set = (opt && opt.dataset.set) || null;
+    }
     setDirty(true);
     fetchCard();
   });
@@ -461,18 +469,23 @@ function serialize() {
       out.question_image = {
         card: q.question_image.card.trim(),
         set: q.question_image.set || null,
+        print_id: q.question_image.print_id || null,
         alt_text: (q.question_image.alt_text || "").trim() || null,
         hide: q.question_image.hide || [],
       };
     } else {
       out.question_image = null;
     }
-    out.options = q.options.map((o) => ({
-      text: (o.text || "").trim(),
-      card: (o.card || "").trim() || null,
-      set: (o.card || "").trim() ? (o.set || null) : null,
-      hide: (o.card || "").trim() ? (o.hide || []) : [],
-    }));
+    out.options = q.options.map((o) => {
+      const hasCard = (o.card || "").trim();
+      return {
+        text: (o.text || "").trim(),
+        card: hasCard || null,
+        set: hasCard ? (o.set || null) : null,
+        print_id: hasCard ? (o.print_id || null) : null,
+        hide: hasCard ? (o.hide || []) : [],
+      };
+    });
     return out;
   });
 }
