@@ -258,6 +258,16 @@ tr:last-child td { border-bottom: none; }
 <td>Points awarded for a correct answer on a Difficult question.</td>
 </tr>
 <tr>
+<td><code>EDITOR_PORT</code></td>
+<td><code>8766</code></td>
+<td>Port for the question editor (<code>editor.bat</code>). Localhost only.</td>
+</tr>
+<tr>
+<td><code>OPEN_BROWSER</code></td>
+<td><code>true</code></td>
+<td>When true, <code>editor.bat</code> opens your browser to the editor on startup.</td>
+</tr>
+<tr>
 <td><code>DEBUG_TIMING</code></td>
 <td><code>false</code></td>
 <td>Set to <code>true</code> to print per-step timing to stderr.</td>
@@ -457,8 +467,7 @@ tr:last-child td { border-bottom: none; }
 <h3 id="5-edit-questions-manage-lists-with-the-visual-editor-optional">5. Edit questions &amp; manage lists with the visual editor (optional)</h3>
 <p>Editing <code>questions.json</code> by hand is fiddly. A small <strong>local editor</strong> lets you add, edit, reorder, and delete questions through a form — with live Scryfall card previews and a <strong>printing picker</strong> (choose "Limited Edition Alpha · 1993 · Rare" from a dropdown instead of typing set codes).</p>
 <ol>
-<li>Double-click <strong><code>editor.bat</code></strong>. A console window opens.</li>
-<li>Open <strong><code>http://localhost:8766/</code></strong> in your browser.</li>
+<li>Double-click <strong><code>editor.bat</code></strong>. A console window opens and your browser opens to the editor automatically (set <code>OPEN_BROWSER=false</code> in <code>.env</code> to disable, then open <strong><code>http://localhost:8766/</code></strong> yourself).</li>
 <li>Pick a question on the left (or <strong>➕ Add</strong>); fill in the form on the right — difficulty, question text, the four answers (mark the correct one), optional card images on the question and/or answers, what to hide, and an explanation.</li>
 <li>Click <strong>💾 Save changes</strong>. The list is validated <em>before</em> writing — if something's wrong (e.g. a missing answer or no correct option), you get a precise error and nothing is overwritten.</li>
 <li>Click <strong>📢 Publish</strong> (see below) and then <strong>start/restart the trivia server</strong> (<code>trivia.bat</code>) to load it.</li>

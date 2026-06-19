@@ -64,6 +64,8 @@ copy .env.example .env
 | `POINTS_EASY` | `1` | Points awarded for a correct answer on an Easy question. |
 | `POINTS_MEDIUM` | `2` | Points awarded for a correct answer on a Medium question. |
 | `POINTS_DIFFICULT` | `3` | Points awarded for a correct answer on a Difficult question. |
+| `EDITOR_PORT` | `8766` | Port for the question editor (`editor.bat`). Localhost only. |
+| `OPEN_BROWSER` | `true` | When true, `editor.bat` opens your browser to the editor on startup. |
 | `DEBUG_TIMING` | `false` | Set to `true` to print per-step timing to stderr. |
 
 ### 4. Write your trivia questions
@@ -206,8 +208,7 @@ The server validates the file at startup and refuses to start with a clear error
 
 Editing `questions.json` by hand is fiddly. A small **local editor** lets you add, edit, reorder, and delete questions through a form — with live Scryfall card previews and a **printing picker** (choose "Limited Edition Alpha · 1993 · Rare" from a dropdown instead of typing set codes).
 
-1. Double-click **`editor.bat`**. A console window opens.
-2. Open **`http://localhost:8766/`** in your browser.
+1. Double-click **`editor.bat`**. A console window opens and your browser opens to the editor automatically (set `OPEN_BROWSER=false` in `.env` to disable, then open **`http://localhost:8766/`** yourself).
 3. Pick a question on the left (or **➕ Add**); fill in the form on the right — difficulty, question text, the four answers (mark the correct one), optional card images on the question and/or answers, what to hide, and an explanation.
 4. Click **💾 Save changes**. The list is validated *before* writing — if something's wrong (e.g. a missing answer or no correct option), you get a precise error and nothing is overwritten.
 5. Click **📢 Publish** (see below) and then **start/restart the trivia server** (`trivia.bat`) to load it.

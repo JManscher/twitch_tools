@@ -10,6 +10,9 @@ active list (and edits) apply the next time you (re)start the trivia server.
 
 import os
 import sys
+import threading
+import time
+import webbrowser
 
 from flask import Flask, jsonify, request, send_from_directory
 from waitress import serve
@@ -26,6 +29,16 @@ def _log(msg: str) -> None:
 
 def _err(e, code=400):
     return jsonify({"ok": False, "error": str(e)}), code
+
+
+def _open_browser_when_ready() -> None:
+    """Open the editor in the default browser once the server is up."""
+    url = f"http://localhost:{config.EDITOR_PORT}/"
+    time.sleep(1.0)  # give waitress a moment to bind
+    try:
+        webbrowser.open(url)
+    except Exception:
+        pass  # never let browser-launch trouble take down the editor
 
 
 def create_editor_app() -> Flask:
@@ -143,6 +156,8 @@ def main() -> int:
     _log(f"[editor] lists dir: {config.LISTS_DIR}")
     _log(f"[editor] open the editor at http://localhost:{config.EDITOR_PORT}/")
     _log("[editor] close this window to stop. Restart the trivia server to apply edits.")
+    if config.OPEN_BROWSER:
+        threading.Thread(target=_open_browser_when_ready, daemon=True).start()
     # Localhost only — this endpoint writes files.
     serve(app, host="127.0.0.1", port=config.EDITOR_PORT, threads=4, _quiet=False)
     return 0

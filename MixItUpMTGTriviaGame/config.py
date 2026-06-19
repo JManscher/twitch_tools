@@ -26,6 +26,8 @@ DEBUG_TIMING = os.getenv("DEBUG_TIMING", "").lower() in ("1", "true", "yes")
 PORT = _int_env("PORT", 8765, minimum=1)
 # Port for the standalone question editor (editor_server.py). Localhost only.
 EDITOR_PORT = _int_env("EDITOR_PORT", 8766, minimum=1)
+# When true, the editor opens your default browser to itself on startup.
+OPEN_BROWSER = os.getenv("OPEN_BROWSER", "true").lower() in ("1", "true", "yes")
 ASK_SECONDS = _int_env("ASK_SECONDS", 30, minimum=5)
 REVEAL_SECONDS = _int_env("REVEAL_SECONDS", 8, minimum=2)
 
