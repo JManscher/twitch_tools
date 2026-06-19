@@ -202,11 +202,35 @@ Pinning a printing affects: the card image shown, the rarity chip (different set
 
 The server validates the file at startup and refuses to start with a clear error if anything is wrong.
 
-### 5. Add your background graphic (optional)
+### 5. Edit questions & manage lists with the visual editor (optional)
+
+Editing `questions.json` by hand is fiddly. A small **local editor** lets you add, edit, reorder, and delete questions through a form — with live Scryfall card previews and a **printing picker** (choose "Limited Edition Alpha · 1993 · Rare" from a dropdown instead of typing set codes).
+
+1. Double-click **`editor.bat`**. A console window opens.
+2. Open **`http://localhost:8766/`** in your browser.
+3. Pick a question on the left (or **➕ Add**); fill in the form on the right — difficulty, question text, the four answers (mark the correct one), optional card images on the question and/or answers, what to hide, and an explanation.
+4. Click **💾 Save changes**. The list is validated *before* writing — if something's wrong (e.g. a missing answer or no correct option), you get a precise error and nothing is overwritten.
+5. Click **📢 Publish** (see below) and then **start/restart the trivia server** (`trivia.bat`) to load it.
+
+The editor binds to `localhost` only (it writes files, so it stays off your network) and runs independently of the trivia server. Change its port with `EDITOR_PORT` in `.env`.
+
+#### Multiple question lists
+
+You can keep several named lists (e.g. *default*, *Commander Night*, *Halloween Special*) and switch between them. The bar at the top of the editor manages them:
+
+- **List dropdown** — choose which list you're editing. The one marked **★ live** is the one the trivia server currently uses.
+- **📢 Publish (make live)** — copies the selected list into `questions.json`, so it becomes the list the trivia server loads. **Editing a list does *not* change what's live** until you publish — so you can prep next week's list while the current one stays on stream.
+- **➕ New** — create a list (blank, or a copy of the current one). **✎ Rename** / **🗑 Delete list** manage the rest. List names are unique.
+
+**How it's stored.** Each list is a *master file* in `lists/<name>.json` with its own timestamp. `questions.json` is the **active mirror** — whatever list is currently published. On editor start-up the active list is reconciled with `questions.json`: if you edited `questions.json` directly (outside the editor) it's imported into that list, but a newer master (edited in the editor) is never overwritten, and nothing is auto-published. To wipe a list entirely, delete its file in `lists/`.
+
+Switching/publishing a list takes effect when you next **(re)start the trivia server** — same as edits.
+
+### 6. Add your background graphic (optional)
 
 Drop a PNG named `background.png` into `static/`. It will be used as the full-screen background of the trivia overlay. If the file is missing, a dark purple/blue gradient is used as a fallback.
 
-### 6. Run the server
+### 7. Run the server
 
 Double-click `trivia.bat`. A console window opens and stays open while the loop runs. You should see:
 
@@ -317,15 +341,21 @@ Running a tiny local Flask server side-steps all of it: the overlay is just a st
 | `trivia_server.py` | Flask app + entry point |
 | `game_loop.py` | Background thread driving phase transitions |
 | `game_state.py` | Thread-safe state container |
-| `questions.py` | Loads + validates `questions.json`; shuffle bag iterator |
-| `scryfall_api.py` | Scryfall lookups (by name) + image download + caching |
+| `questions.py` | Loads, validates, and saves `questions.json`; shuffle bag iterator |
+| `scryfall_api.py` | Scryfall lookups (by name), printings list, image download + caching |
 | `cache.py` | File-based JSON cache (Scryfall image URLs, 30-day TTL) |
 | `config.py` | Environment loading + timing helper |
-| `questions.json` | The trivia content — edit this to add/remove questions |
+| `questions.json` | The trivia content — edit by hand or via the visual editor |
 | `trivia.bat` | Windows entry point that prefers the `py` launcher |
+| `editor_server.py` | Localhost-only question editor (CRUD API + UI) |
+| `library.py` | Named question lists store (masters + active mirror + sync) |
+| `editor.bat` | Windows entry point for the question editor |
+| `lists/` | Named question lists (one master file each) — not committed |
 | `static/overlay.html` | The page OBS Browser Source points at |
 | `static/style.css` | Overlay styling and difficulty badge colors |
 | `static/overlay.js` | Polls `/state` and renders the overlay |
+| `static/editor.html` / `editor.css` / `editor.js` | The question editor UI |
+| `questions.json.bak` | Auto-written backup on each editor save — not committed |
 | `static/background.png` | (Optional) Your custom background graphic — not committed |
 | `static/cards/` | Auto-populated Scryfall card images — not committed |
 | `.env.example` | Template for optional configuration |

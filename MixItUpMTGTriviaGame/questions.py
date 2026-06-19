@@ -1,7 +1,9 @@
 """Load + validate questions.json and provide a shuffled iterator."""
 
 import json
+import os
 import random
+import shutil
 from typing import List, Set
 
 
@@ -149,6 +151,27 @@ def _validate_question(q, index: int) -> dict:
     }
 
 
+def validate_questions(raw_questions) -> List[dict]:
+    """Validate and normalize a list of question dicts.
+
+    Returns the normalized list. Raises QuestionsError with a clear,
+    actionable message (including the offending path) on any problem.
+    """
+    _check(isinstance(raw_questions, list), "questions", "must be a list")
+    _check(len(raw_questions) >= 1, "questions", "must contain at least 1 question")
+
+    validated = [_validate_question(q, i) for i, q in enumerate(raw_questions)]
+
+    seen = set()
+    for q in validated:
+        qid = q["id"]
+        if qid in seen:
+            raise QuestionsError(f"duplicate question id: {qid!r}")
+        seen.add(qid)
+
+    return validated
+
+
 def load(path: str) -> List[dict]:
     """Read, parse, and validate the questions JSON file.
 
@@ -166,20 +189,31 @@ def load(path: str) -> List[dict]:
     version = raw.get("version")
     _check(version == 1, "root.version", f"must be 1 (got {version!r})")
 
-    qs = raw.get("questions")
-    _check(isinstance(qs, list), "root.questions", "must be a list")
-    _check(len(qs) >= 1, "root.questions", "must contain at least 1 question")
+    return validate_questions(raw.get("questions"))
 
-    validated = [_validate_question(q, i) for i, q in enumerate(qs)]
 
-    ids = [q["id"] for q in validated]
-    if len(set(ids)) != len(ids):
-        seen = set()
-        for qid in ids:
-            if qid in seen:
-                raise QuestionsError(f"duplicate question id: {qid!r}")
-            seen.add(qid)
+def save(path: str, questions) -> List[dict]:
+    """Validate `questions`, back up any existing file, and atomically write
+    `{ "version": 1, "questions": [...] }`. Returns the normalized list.
 
+    Raises QuestionsError (before touching the file) if validation fails, so
+    a bad edit never overwrites a good questions.json.
+    """
+    validated = validate_questions(questions)
+
+    payload = {"version": 1, "questions": validated}
+    tmp = path + ".tmp"
+    with open(tmp, "w", encoding="utf-8") as f:
+        json.dump(payload, f, indent=2, ensure_ascii=False)
+
+    # Back up the previous good file before replacing it.
+    if os.path.exists(path):
+        try:
+            shutil.copy2(path, path + ".bak")
+        except OSError:
+            pass
+
+    os.replace(tmp, path)
     return validated
 
 

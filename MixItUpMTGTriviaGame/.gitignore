@@ -1,6 +1,8 @@
 .env
 .cache.json
 scores.json
+questions.json.bak
+lists/
 __pycache__/
 *.pyc
 static/background.*

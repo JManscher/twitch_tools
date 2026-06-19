@@ -454,9 +454,28 @@ tr:last-child td { border-bottom: none; }
 <p>Browse all set codes at <a href="https://scryfall.com/sets">scryfall.com/sets</a>. The <code>set</code> field is case-insensitive and works on both <code>question_image</code> and individual option entries.</p>
 <p>Pinning a printing affects: the card image shown, the rarity chip (different sets often print the same card at different rarities), and the price (different printings have different market prices). It does <strong>not</strong> change the card's gameplay rules, mana cost, or text — those are universal.</p>
 <p>The server validates the file at startup and refuses to start with a clear error if anything is wrong.</p>
-<h3 id="5-add-your-background-graphic-optional">5. Add your background graphic (optional)</h3>
+<h3 id="5-edit-questions-manage-lists-with-the-visual-editor-optional">5. Edit questions &amp; manage lists with the visual editor (optional)</h3>
+<p>Editing <code>questions.json</code> by hand is fiddly. A small <strong>local editor</strong> lets you add, edit, reorder, and delete questions through a form — with live Scryfall card previews and a <strong>printing picker</strong> (choose "Limited Edition Alpha · 1993 · Rare" from a dropdown instead of typing set codes).</p>
+<ol>
+<li>Double-click <strong><code>editor.bat</code></strong>. A console window opens.</li>
+<li>Open <strong><code>http://localhost:8766/</code></strong> in your browser.</li>
+<li>Pick a question on the left (or <strong>➕ Add</strong>); fill in the form on the right — difficulty, question text, the four answers (mark the correct one), optional card images on the question and/or answers, what to hide, and an explanation.</li>
+<li>Click <strong>💾 Save changes</strong>. The list is validated <em>before</em> writing — if something's wrong (e.g. a missing answer or no correct option), you get a precise error and nothing is overwritten.</li>
+<li>Click <strong>📢 Publish</strong> (see below) and then <strong>start/restart the trivia server</strong> (<code>trivia.bat</code>) to load it.</li>
+</ol>
+<p>The editor binds to <code>localhost</code> only (it writes files, so it stays off your network) and runs independently of the trivia server. Change its port with <code>EDITOR_PORT</code> in <code>.env</code>.</p>
+<h4 id="multiple-question-lists">Multiple question lists</h4>
+<p>You can keep several named lists (e.g. <em>default</em>, <em>Commander Night</em>, <em>Halloween Special</em>) and switch between them. The bar at the top of the editor manages them:</p>
+<ul>
+<li><strong>List dropdown</strong> — choose which list you're editing. The one marked <strong>★ live</strong> is the one the trivia server currently uses.</li>
+<li><strong>📢 Publish (make live)</strong> — copies the selected list into <code>questions.json</code>, so it becomes the list the trivia server loads. <strong>Editing a list does <em>not</em> change what's live</strong> until you publish — so you can prep next week's list while the current one stays on stream.</li>
+<li><strong>➕ New</strong> — create a list (blank, or a copy of the current one). <strong>✎ Rename</strong> / <strong>🗑 Delete list</strong> manage the rest. List names are unique.</li>
+</ul>
+<p><strong>How it's stored.</strong> Each list is a <em>master file</em> in <code>lists/&lt;name&gt;.json</code> with its own timestamp. <code>questions.json</code> is the <strong>active mirror</strong> — whatever list is currently published. On editor start-up the active list is reconciled with <code>questions.json</code>: if you edited <code>questions.json</code> directly (outside the editor) it's imported into that list, but a newer master (edited in the editor) is never overwritten, and nothing is auto-published. To wipe a list entirely, delete its file in <code>lists/</code>.</p>
+<p>Switching/publishing a list takes effect when you next <strong>(re)start the trivia server</strong> — same as edits.</p>
+<h3 id="6-add-your-background-graphic-optional">6. Add your background graphic (optional)</h3>
 <p>Drop a PNG named <code>background.png</code> into <code>static/</code>. It will be used as the full-screen background of the trivia overlay. If the file is missing, a dark purple/blue gradient is used as a fallback.</p>
-<h3 id="6-run-the-server">6. Run the server</h3>
+<h3 id="7-run-the-server">7. Run the server</h3>
 <p>Double-click <code>trivia.bat</code>. A console window opens and stays open while the loop runs. You should see:</p>
 <pre><code>[trivia] loading questions from ...questions.json
 [trivia] loaded 8 questions
@@ -597,11 +616,11 @@ tr:last-child td { border-bottom: none; }
 </tr>
 <tr>
 <td><code>questions.py</code></td>
-<td>Loads + validates <code>questions.json</code>; shuffle bag iterator</td>
+<td>Loads, validates, and saves <code>questions.json</code>; shuffle bag iterator</td>
 </tr>
 <tr>
 <td><code>scryfall_api.py</code></td>
-<td>Scryfall lookups (by name) + image download + caching</td>
+<td>Scryfall lookups (by name), printings list, image download + caching</td>
 </tr>
 <tr>
 <td><code>cache.py</code></td>
@@ -613,11 +632,27 @@ tr:last-child td { border-bottom: none; }
 </tr>
 <tr>
 <td><code>questions.json</code></td>
-<td>The trivia content — edit this to add/remove questions</td>
+<td>The trivia content — edit by hand or via the visual editor</td>
 </tr>
 <tr>
 <td><code>trivia.bat</code></td>
 <td>Windows entry point that prefers the <code>py</code> launcher</td>
+</tr>
+<tr>
+<td><code>editor_server.py</code></td>
+<td>Localhost-only question editor (CRUD API + UI)</td>
+</tr>
+<tr>
+<td><code>library.py</code></td>
+<td>Named question lists store (masters + active mirror + sync)</td>
+</tr>
+<tr>
+<td><code>editor.bat</code></td>
+<td>Windows entry point for the question editor</td>
+</tr>
+<tr>
+<td><code>lists/</code></td>
+<td>Named question lists (one master file each) — not committed</td>
 </tr>
 <tr>
 <td><code>static/overlay.html</code></td>
@@ -630,6 +665,14 @@ tr:last-child td { border-bottom: none; }
 <tr>
 <td><code>static/overlay.js</code></td>
 <td>Polls <code>/state</code> and renders the overlay</td>
+</tr>
+<tr>
+<td><code>static/editor.html</code> / <code>editor.css</code> / <code>editor.js</code></td>
+<td>The question editor UI</td>
+</tr>
+<tr>
+<td><code>questions.json.bak</code></td>
+<td>Auto-written backup on each editor save — not committed</td>
 </tr>
 <tr>
 <td><code>static/background.png</code></td>

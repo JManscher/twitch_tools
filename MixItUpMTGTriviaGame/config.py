@@ -24,12 +24,17 @@ def _int_env(name: str, default: int, minimum: int = 1) -> int:
 DEBUG_TIMING = os.getenv("DEBUG_TIMING", "").lower() in ("1", "true", "yes")
 
 PORT = _int_env("PORT", 8765, minimum=1)
+# Port for the standalone question editor (editor_server.py). Localhost only.
+EDITOR_PORT = _int_env("EDITOR_PORT", 8766, minimum=1)
 ASK_SECONDS = _int_env("ASK_SECONDS", 30, minimum=5)
 REVEAL_SECONDS = _int_env("REVEAL_SECONDS", 8, minimum=2)
 
 QUESTIONS_FILE = os.getenv("QUESTIONS_FILE") or os.path.join(_HERE, "questions.json")
 STATIC_DIR = os.path.join(_HERE, "static")
 CARDS_DIR = os.path.join(STATIC_DIR, "cards")
+# Library of named question lists. The active list is mirrored to QUESTIONS_FILE,
+# which the trivia server loads. Managed by the editor.
+LISTS_DIR = os.getenv("LISTS_DIR") or os.path.join(_HERE, "lists")
 
 # Comma-separated. Defaults to common chat bots. Lowercase.
 _BOT_DEFAULT = "nightbot,streamelements,streamlabs,moobot"

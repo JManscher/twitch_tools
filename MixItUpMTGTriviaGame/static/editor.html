@@ -1,0 +1,53 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>MTG Trivia — Question Editor</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Quicksand:wght@500;600;700&family=Fredoka:wght@600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/static/editor.css" />
+</head>
+<body>
+  <header class="topbar">
+    <div class="brand"><span class="logo">🃏</span> MTG Trivia — Question Editor</div>
+    <div class="topbar-actions">
+      <span id="status" class="status"></span>
+      <button id="save-btn" class="btn btn-primary" disabled>💾 Save changes</button>
+    </div>
+  </header>
+
+  <div class="listbar">
+    <label class="listbar-label" for="list-select">List</label>
+    <select id="list-select"></select>
+    <span id="active-tag" class="active-tag"></span>
+    <span id="unpublished" class="unpublished" hidden>● unpublished changes</span>
+    <div class="listbar-actions">
+      <button id="publish-btn" class="btn btn-publish">📢 Publish to stream</button>
+      <button id="new-btn" class="btn btn-ghost">➕ New</button>
+      <button id="rename-btn" class="btn btn-ghost">✎ Rename</button>
+      <button id="del-list-btn" class="btn btn-ghost">🗑 Delete list</button>
+    </div>
+  </div>
+
+  <div id="banner" class="banner" hidden></div>
+
+  <main class="layout">
+    <aside class="sidebar">
+      <div class="sidebar-head">
+        <span id="count" class="count">0 questions</span>
+        <button id="add-btn" class="btn btn-add">➕ Add</button>
+      </div>
+      <ul id="question-list" class="question-list"></ul>
+    </aside>
+
+    <section id="editor-pane" class="editor-pane">
+      <div id="empty-state" class="empty-state">Select a question on the left, or add a new one.</div>
+      <form id="editor-form" class="editor-form" hidden></form>
+    </section>
+  </main>
+
+  <script src="/static/editor.js"></script>
+</body>
+</html>

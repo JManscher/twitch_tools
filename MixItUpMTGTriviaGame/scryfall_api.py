@@ -10,10 +10,14 @@ import cache
 import config
 
 _NAMED_URL = "https://api.scryfall.com/cards/named"
+_SEARCH_URL = "https://api.scryfall.com/cards/search"
 _HEADERS = {
     "User-Agent": "MixItUpMTGTriviaGame/1.0",
     "Accept": "application/json",
 }
+
+# Safety cap on printing pages followed (each page is up to 175 cards).
+_MAX_PRINT_PAGES = 4
 
 # Scryfall card data is effectively static for cards already printed.
 # A 30-day TTL is plenty conservative.
@@ -111,6 +115,66 @@ def fetch_card_by_name(name: str, set_code: Optional[str] = None) -> dict:
     }
     cache.set(key, minimal)
     return minimal
+
+
+def list_printings(name: str) -> dict:
+    """List every printing of a card so the editor can offer a set picker.
+
+    Resolves the canonical name first (fuzzy), then searches all prints.
+    Cached for 30 days. Returns:
+        { "name": <canonical>, "printings": [ {set, set_name,
+          collector_number, rarity, released, image_url, price_usd}, ... ] }
+    Raises ScryfallAPIError on failure.
+    """
+    # Resolve the canonical name so the exact-name search matches.
+    canonical = fetch_card_by_name(name).get("name") or name
+
+    key = f"prints:v1:{canonical.lower().strip()}"
+    cached = cache.get(key, _CACHE_TTL_SECONDS)
+    if cached:
+        return cached
+
+    printings = []
+    params = {
+        "q": f'!"{canonical}"',
+        "unique": "prints",
+        "order": "released",
+        "dir": "asc",
+    }
+    url = _SEARCH_URL
+    pages = 0
+    try:
+        with config.timer(f"Scryfall: prints '{canonical}'"):
+            while url and pages < _MAX_PRINT_PAGES:
+                resp = requests.get(url, params=params, headers=_HEADERS, timeout=10)
+                # A 404 means no prints matched — treat as empty, not an error.
+                if resp.status_code == 404:
+                    break
+                resp.raise_for_status()
+                data = resp.json()
+                for card in data.get("data") or []:
+                    prices = card.get("prices") or {}
+                    printings.append({
+                        "set": card.get("set"),
+                        "set_name": card.get("set_name"),
+                        "collector_number": card.get("collector_number"),
+                        "rarity": card.get("rarity"),
+                        "released": card.get("released_at"),
+                        "image_url": _image_url(card),
+                        "price_usd": prices.get("usd"),
+                    })
+                # Follow pagination via next_page (params already encoded in it).
+                url = data.get("next_page") if data.get("has_more") else None
+                params = None
+                pages += 1
+    except requests.RequestException as e:
+        raise ScryfallAPIError(f"printings lookup failed for '{name}': {e}")
+    except ValueError as e:
+        raise ScryfallAPIError(f"invalid JSON from Scryfall for '{name}' printings: {e}")
+
+    result = {"name": canonical, "printings": printings}
+    cache.set(key, result)
+    return result
 
 
 def prewarm(refs, image_dir: str) -> Dict[tuple, Optional[dict]]:
